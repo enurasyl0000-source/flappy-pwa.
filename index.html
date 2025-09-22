@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flappy Bird AI</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4CAF50"/>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #70c5ce; }
+    canvas { background: #70c5ce; display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="320" height="480"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let birdY = 200;
+    let birdVelocity = 0;
+    let gravity = 0.5;
+    let jump = -8;
+    let pipes = [];
+    let frame = 0;
+    let score = 0;
+
+    document.addEventListener("keydown", () => birdVelocity = jump);
+    canvas.addEventListener("click", () => birdVelocity = jump);
+
+    function drawBird() {
+      ctx.fillStyle = "yellow";
+      ctx.beginPath();
+      ctx.arc(60, birdY, 12, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    function drawPipes() {
+      ctx.fillStyle = "green";
+      pipes.forEach(pipe => {
+        ctx.fillRect(pipe.x, 0, 40, pipe.top);
+        ctx.fillRect(pipe.x, pipe.top + 100, 40, canvas.height - pipe.top - 100);
+      });
+    }
+
+    function update() {
+      birdVelocity += gravity;
+      birdY += birdVelocity;
+
+      if (frame % 90 === 0) {
+        let top = Math.random() * 200 + 50;
+        pipes.push({ x: canvas.width, top: top });
+      }
+
+      pipes.forEach(pipe => {
+        pipe.x -= 2;
+        if (pipe.x === 60) score++;
+      });
+
+      // Collision detection
+      pipes.forEach(pipe => {
+        if (60 > pipe.x && 60 < pipe.x + 40 &&
+          (birdY < pipe.top || birdY > pipe.top + 100)) {
+          alert("Game Over! Score: " + score);
+          document.location.reload();
+        }
+      });
+
+      if (birdY > canvas.height || birdY < 0) {
+        alert("Game Over! Score: " + score);
+        document.location.reload();
+      }
+    }
+
+    function drawScore() {
+      ctx.fillStyle = "white";
+      ctx.font = "20px Arial";
+      ctx.fillText("Score: " + score, 10, 25);
+    }
+
+    function loop() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      update();
+      drawBird();
+      drawPipes();
+      drawScore();
+      frame++;
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js");
+    }
+  </script>
+</body>
+</html>
